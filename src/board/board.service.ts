@@ -16,10 +16,6 @@ export class BoardService {
   async getAllBoards(authorName?: string): Promise<Board[]> {
     const foundBoard = await this.boardRepository.findMany(authorName);
 
-    if (!foundBoard || foundBoard.length === 0) {
-      throw new NotFoundException('No boards found');
-    }
-
     return foundBoard;
   }
 
