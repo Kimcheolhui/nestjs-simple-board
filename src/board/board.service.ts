@@ -19,6 +19,17 @@ export class BoardService {
     return foundBoard;
   }
 
+  // Question: Board가 없을 경우, 그냥 빈 배열을 보내는 게 맞을까, Error를 주는 게 맞을까?
+
+  async getAllMyBoards(user: User): Promise<Board[]> {
+    const foundBoard = await this.boardRepository.findMany(
+      undefined,
+      user.uuid,
+    );
+
+    return foundBoard;
+  }
+
   async getBoard(id: number): Promise<Board> {
     const foundBoard = await this.boardRepository.findOneById(id);
 

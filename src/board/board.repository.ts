@@ -8,11 +8,12 @@ import { UpdateBoardDto } from './dto/updateBoard.dto';
 export class BoardRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findMany(authorName?: string): Promise<Board[]> {
+  async findMany(authorName?: string, uuid?: string): Promise<Board[]> {
     return this.prismaService.board.findMany({
       where: {
         author: {
           username: authorName ? authorName : undefined,
+          uuid: uuid ? uuid : undefined,
         },
       },
       include: {

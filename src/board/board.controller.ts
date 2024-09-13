@@ -32,6 +32,12 @@ export class BoardController {
     return this.boardService.getAllBoards(authorName);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/my-boards')
+  async getAllMyBoards(@Request() req): Promise<Board[]> {
+    return this.boardService.getAllMyBoards(req.user);
+  }
+
   @Get('/:id')
   async getBoard(@Param('id', ParseIntPipe) id: number): Promise<Board> {
     return this.boardService.getBoard(id);
