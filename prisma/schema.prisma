@@ -19,4 +19,16 @@ model User {
   username  String   @unique
   password  String
   createdAt DateTime @default(now())
+
+  boards Board[] // 1:N
+}
+
+model Board {
+  id        Int      @id @default(autoincrement())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  author   User   @relation(fields: [authorId], references: [uuid])
+  authorId String @db.Uuid
 }

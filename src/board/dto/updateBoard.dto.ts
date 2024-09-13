@@ -1,4 +1,4 @@
 export class UpdateBoardDto {
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
 }

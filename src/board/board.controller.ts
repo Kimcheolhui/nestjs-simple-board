@@ -3,91 +3,75 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
+  HttpCode,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
-import { Board } from './types/board.type';
 import { CreateBoardDto } from './dto/createBoard.dto';
 
-import { v1 as uuid } from 'uuid';
+// import { UpdateBoardDto } from './dto/updateBoard.dto';
+import { BoardService } from './board.service';
+import { Board } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { UpdateBoardDto } from './dto/updateBoard.dto';
 
 @Controller('board')
 export class BoardController {
-  private boards: Board[] = [];
+  constructor(private readonly boardService: BoardService) {}
 
   /**
    * 모든 게시글을 불러오기
-   * - TODO: query 적용할 수 있도록 수정
-   * @returns
    */
   @Get('/')
-  async getAllBoards(): Promise<Board[]> {
-    return this.boards;
+  async getAllBoards(@Query('author') authorName?: string): Promise<Board[]> {
+    return this.boardService.getAllBoards(authorName);
   }
 
   @Get('/:id')
-  async getBoard(@Param('id') id: string): Promise<Board> {
-    const board: Board = this.boards.find((board) => board.id === id);
-
-    if (!board) {
-      throw new NotFoundException(`Can't find Board with id ${id}`);
-    }
-
-    return board;
+  async getBoard(@Param('id', ParseIntPipe) id: number): Promise<Board> {
+    return this.boardService.getBoard(id);
   }
 
   /**
    * 게시글 작성
    */
+  @UseGuards(JwtAuthGuard)
   @Post('/')
-  async createBoard(@Body() createBoardDto: CreateBoardDto): Promise<Board> {
-    const { title, body } = createBoardDto;
-
-    const board: Board = {
-      id: uuid(),
-      title,
-      body,
-    };
-
-    this.boards.push(board);
-
-    return board;
+  async createBoard(
+    @Body() createBoardDto: CreateBoardDto,
+    @Request() req,
+  ): Promise<Board> {
+    return this.boardService.createBoard(createBoardDto, req.user);
   }
 
   /**
    * 게시글 수정
    */
+  @UseGuards(JwtAuthGuard)
   @Patch('/:id')
   async updateBoard(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateBoardDto: UpdateBoardDto,
+    @Request() req,
   ): Promise<Board> {
-    const board = this.boards.find((board) => board.id === id);
-
-    if (!board) {
-      throw new NotFoundException(`Can't find Board with id ${id}`);
-    }
-
-    board.title = updateBoardDto.title ?? board.title;
-    board.body = updateBoardDto.body ?? board.body;
-
-    return board;
+    return this.boardService.updateBoard(id, updateBoardDto, req.user);
   }
 
   /**
    * 게시글 삭제
    */
+  @UseGuards(JwtAuthGuard)
   @Delete('/:id')
-  async deleteBoard(@Param('id') id: string): Promise<void> {
-    const newBoards = this.boards.filter((board) => board.id !== id);
-
-    if (newBoards.length === this.boards.length) {
-      throw new NotFoundException(`Can't find Board with id ${id}`);
-    }
-
-    this.boards = newBoards;
+  @HttpCode(204)
+  async deleteBoard(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ): Promise<void> {
+    return this.boardService.deleteBoard(id, req.user);
   }
 }
